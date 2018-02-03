@@ -123,11 +123,11 @@ boost::optional<options> parse_arguments(int ac, char** av)
 
 int main(int ac, char** av)
 {
-	int size, rank;
-	MPI_Init(&ac, &av);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	auto opt_options = parse_arguments(ac, av);
+    int size, rank;
+    MPI_Init(&ac, &av);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    auto opt_options = parse_arguments(ac, av);
     if (!opt_options)
         return 1;
     auto options = opt_options.get();
@@ -174,21 +174,21 @@ int main(int ac, char** av)
     }
 
     //MPI process rank 0 gather other MPI process's rendering results.
-	if(rank == 0) {// receive from other GPU's results
-	}
-	else {// send local GPU's results to MPI process rank 0 (GPU 0)
-	}
-	//other code 
-	//
-	//other code
+    if(rank == 0) {// receive from other GPU's results
+    }
+    else {// send local GPU's results to MPI process rank 0 (GPU 0)
+    }
+    //other code 
+    //
+    //other code
 	
-	if(rank ==0) {
-		applyImagePipeline(*options.tracer, outImage, CreateAggregate<Filter>(BoxFilter(0.5f, 0.5f)));
-		outImage.WriteDisplayImage("result.png");
-	}
+    if(rank ==0) {
+	applyImagePipeline(*options.tracer, outImage, CreateAggregate<Filter>(BoxFilter(0.5f, 0.5f)));
+	outImage.WriteDisplayImage("result.png");
+    }
 
     outImage.Free();
     DeInitializeCuda4Tracer();
-	MPI_Finalize();
+    MPI_Finalize();
     return 0;
 }
