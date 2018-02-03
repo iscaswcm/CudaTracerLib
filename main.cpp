@@ -189,7 +189,6 @@ int main(int ac, char** av)
 
     outImage.Free();
     DeInitializeCuda4Tracer();
-
 	MPI_Finalize();
     return 0;
 }
