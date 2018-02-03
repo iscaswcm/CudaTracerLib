@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 3.0)
 project(CudaTracerLib)
-
+set(CMAKE_VERBOSE_MAKEFILE ON)
+find_package(MPI REQUIRED)
+include_directories(${MPI_INCLUDE_PATH})
 set (CMAKE_CXX_STANDARD 14)
 
 FIND_PACKAGE( Boost COMPONENTS system filesystem iostreams REQUIRED )
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 
 # Specify include directories
-set(QMATRIX_INCLUDE_DIR "qMatrixLib" CACHE FILEPATH "Path to qMatrixLib")
+set(QMATRIX_INCLUDE_DIR "../qMatrixLib")
 include_directories(${QMATRIX_INCLUDE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -32,7 +34,7 @@ SET(CMAKE_MODULE_LINKER_FLAGS "-m64")
 SET(CMAKE_SHARED_LINKER_FLAGS "-m64")
 
 file(GLOB CTL_SRC_ROOT
-       ${PROJECT_SOURCE_DIR}/*.cpp)
+	${PROJECT_SOURCE_DIR}/Defines.cpp ${PROJECT_SOURCE_DIR}/stdafx.cpp)
 file(GLOB_RECURSE CTL_SRC
        ${PROJECT_SOURCE_DIR}/Base/*.cpp
        ${PROJECT_SOURCE_DIR}/Engine/*.cpp
@@ -56,13 +58,8 @@ file(GLOB_RECURSE CTL_CU
 
 set(LIB_NAME "CudaTracerLib")
 
-set(BUILD_LIBRARY true CACHE BOOL "Whether to build a library or an executable")
-
-if (BUILD_LIBRARY)
-    cuda_add_library(${LIB_NAME} ${CTL_SRC} ${CTL_CU} ${CTL_SRC_ROOT} ${CTL_CU_ROOT})
-else ()
-    CUDA_ADD_EXECUTABLE(${LIB_NAME} ${CTL_SRC} ${CTL_CU} ${CTL_SRC_ROOT} ${CTL_CU_ROOT})
-endif ()
-
+cuda_add_library(${LIB_NAME} ${CTL_SRC} ${CTL_CU} ${CTL_SRC_ROOT} ${CTL_CU_ROOT})
+add_executable(CudaTracerLib main.cpp)
+target_link_libraries(main ${LIB_NAME} ${MPI_LIBRARIES})
 target_link_libraries(${LIB_NAME} freeimage.so)
 target_link_libraries(${LIB_NAME} ${Boost_LIBRARIES})

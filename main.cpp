@@ -22,7 +22,8 @@
 #include <Integrators/PseudoRealtime/WavefrontPathTracer.h>
 #include <Kernel/ImagePipeline/ImagePipeline.h>
 #include <Engine/SceneLoader/Mitsuba/MitsubaLoader.h>
-
+//for multiple GPU ray tracing
+#include <mpi.h>
 using namespace CudaTracerLib;
 
 class SimpleFileManager : public IFileManager
@@ -122,7 +123,11 @@ boost::optional<options> parse_arguments(int ac, char** av)
 
 int main(int ac, char** av)
 {
-    auto opt_options = parse_arguments(ac, av);
+	int size, rank;
+	MPI_Init(&ac, &av);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	auto opt_options = parse_arguments(ac, av);
     if (!opt_options)
         return 1;
     auto options = opt_options.get();
@@ -149,18 +154,32 @@ int main(int ac, char** av)
     scene.UpdateScene();
 
     boost::progress_display show_progress(options.n_passes);
-    for (int i = 0; i < options.n_passes; i++)
+	//each GPU gtes roughly equal iterations, i.e. passes.
+	int pass_per_GPU[size];
+	int divisor   = options.n_passes / size;
+	int remainder = options.n_passes % size;
+	for(int i = 0; i < size; i++)
+		pass_per_GPU[i] = divisor;
+	// if options.n_passes is not integer times of MPI size, let the first
+	// remainder MPI processes get the remainder samples. We have a
+	// hypothesis that each pass has almost equal compute time. 
+	if(remainder) {
+		for(int i = 0; i < remainder; i++)
+			pass_per_GPU[i] += 1;
+	}
+    for (int i = 0; i < pass_per_GPU[rank]; i++)
     {
         options.tracer->DoPass(&outImage, !i);
         ++show_progress;
     }
 
+    //MPI process rank 0 gather other MPI process's rendering results.
     applyImagePipeline(*options.tracer, outImage, CreateAggregate<Filter>(BoxFilter(0.5f, 0.5f)));
-
     outImage.WriteDisplayImage("result.png");
 
     outImage.Free();
     DeInitializeCuda4Tracer();
 
+	MPI_Finalize();
     return 0;
 }
