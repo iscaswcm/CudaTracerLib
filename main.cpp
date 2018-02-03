@@ -174,8 +174,18 @@ int main(int ac, char** av)
     }
 
     //MPI process rank 0 gather other MPI process's rendering results.
-    applyImagePipeline(*options.tracer, outImage, CreateAggregate<Filter>(BoxFilter(0.5f, 0.5f)));
-    outImage.WriteDisplayImage("result.png");
+	if(rank == 0) {// receive from other GPU's results
+	}
+	else {// send local GPU's results to MPI process rank 0 (GPU 0)
+	}
+	//other code 
+	//
+	//other code
+	
+	if(rank ==0) {
+		applyImagePipeline(*options.tracer, outImage, CreateAggregate<Filter>(BoxFilter(0.5f, 0.5f)));
+		outImage.WriteDisplayImage("result.png");
+	}
 
     outImage.Free();
     DeInitializeCuda4Tracer();

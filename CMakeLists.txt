@@ -59,7 +59,7 @@ file(GLOB_RECURSE CTL_CU
 set(LIB_NAME "CudaTracerLib")
 
 cuda_add_library(${LIB_NAME} ${CTL_SRC} ${CTL_CU} ${CTL_SRC_ROOT} ${CTL_CU_ROOT})
-add_executable(CudaTracerLib main.cpp)
-target_link_libraries(main ${LIB_NAME} ${MPI_LIBRARIES})
+add_executable(mCudaTracerLib main.cpp)
+target_link_libraries(mCudaTracerLib ${LIB_NAME} ${MPI_LIBRARIES})
 target_link_libraries(${LIB_NAME} freeimage.so)
 target_link_libraries(${LIB_NAME} ${Boost_LIBRARIES})
